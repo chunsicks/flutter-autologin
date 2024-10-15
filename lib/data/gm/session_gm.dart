@@ -19,12 +19,12 @@ class SessionGM {
 
   Future<void> login(String username, String password) async {
     //1. 통신 //body안에 {success:머시기, statue:머시기 errorMessage:머시기, response:오브젝트
-    var (body, accessToken)  = await UserRepository().login(username, password);
+    var (body, accessToken) = await UserRepository().login(username, password);
 
     Logger().d("세션창고의 login() 메서드 실행됨 ${body}, ${accessToken}");
 
     //2. 성공 or 실패 처리
-    if(body["success"]){
+    if (body["success"]) {
       Logger().d("로그인 성공");
       //(1) sessionGM 값 변경   session이라 생각하면 된다
       this.id = body["response"]["id"];
@@ -41,15 +41,17 @@ class SessionGM {
       dio.options.headers["Authorization"] = accessToken;
 
       //(4) 화면 이동
-      Navigator.pushNamed(mContext,"/post/list");
-    }else{
+      Navigator.pushNamed(mContext, "/post/list");
+    } else {
       Logger().d("로그인 실패");
       ScaffoldMessenger.of(mContext).showSnackBar(
         SnackBar(content: Text("${body["errorMessage"]}")),
       );
     }
   }
+
   Future<void> join() async {}
+
   Future<void> logout() async {
     await secureStorage.delete(key: "accessToken");
     this.id = null;
@@ -59,16 +61,27 @@ class SessionGM {
     //this.id 이런곳에 왜 await안 붙여도될까 cpu가 되니까 그냥 빨리됨
     Navigator.popAndPushNamed(mContext, "/login");
   }
+
   Future<void> autoLogin() async {
     //1. 시큐어 스토리지에서 accessToken꺼내기
     //꺼냈을 때 null이면 로그인페이지로 꺼내면 던지기
-
-    //2. api 호출
-
-    //3. 세션값 갱신 트루 이런거 넣어주는 것
-
-    //4. 정상이면 post/list로 이동(pop and pushNamed)
-
+    String? accessToken = await secureStorage.read(key: "accessToken");
+    Logger().d("로그인 토큰 : ${accessToken}");
+    if (accessToken == null) {
+      Navigator.popAndPushNamed(mContext, "/login");
+      Logger().d("로그인 실패 오토");
+    } else {
+      Logger().d("로그인 성공 오토");
+      //2. api 호출
+      Map<String, dynamic> body = await UserRepository().autoLogin(accessToken);
+      //3. 세션값 갱신 트루 이런거 넣어주는 것
+      this.id = body["response"]["id"];
+      this.username = body["response"]["username"];
+      this.accessToken = accessToken;
+      this.isLogin = true;
+      //4. 정상이면 post/list로 이동(pop and pushNamed)
+      Navigator.popAndPushNamed(mContext, "/post/list");
+    }
 
     // Future.delayed(
     //   Duration(seconds: 3),
