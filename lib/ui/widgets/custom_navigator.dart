@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blog/_core/constants/size.dart';
+import 'package:flutter_blog/data/gm/session_gm.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CustomNavigation extends StatelessWidget {
+class CustomNavigation extends ConsumerWidget {
   final scaffoldKey;
   const CustomNavigation(this.scaffoldKey, {Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context,WidgetRef ref) {
     return Container(
       width: getDrawerWidth(context),
       height: double.infinity,
@@ -34,8 +36,10 @@ class CustomNavigation extends StatelessWidget {
               const Divider(),
               TextButton(
                 onPressed: () {
-                  scaffoldKey.currentState!.openEndDrawer();
-                  Navigator.popAndPushNamed(context, "/login");
+                  //pop에서 날랄거니까 없어도됨
+                  //scaffoldKey.currentState!.openEndDrawer();
+                  ref.read(sessionProvider).logout();
+                  //Navigator.popAndPushNamed(context, "/login");
                 },
                 child: const Text(
                   "로그아웃",
